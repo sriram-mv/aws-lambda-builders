@@ -63,12 +63,12 @@ class TestGoBuilder(TestCase):
 
     @patch("aws_lambda_builders.workflows.go_modules.builder.GoModulesBuilder._attempt_to_build_from_handler")
     def test_raises_BuilderError_with_err_text_if_retcode_is_not_0(self, patched_helper):
-        patched_helper.return_value = self.popen, "", b"some error text\n\n"
+        patched_helper.return_value = self.popen, "", b"fallback error\n\n"
         self.popen.returncode = 1
-        self.popen.err = b"some error text\n\n"
+        self.popen.err = b"original error\n\n"
         with self.assertRaises(BuilderError) as raised:
             self.under_test.build("source_dir", "output_path")
-        self.assertEqual(raised.exception.args[0], "Builder Failed: some error text")
+        self.assertEqual(raised.exception.args[0], "Builder Failed: original error\nfallback error")
 
     def test_debug_configuration_set(self):
         self.under_test = GoModulesBuilder(self.osutils, self.binaries, self.handler, "Debug")

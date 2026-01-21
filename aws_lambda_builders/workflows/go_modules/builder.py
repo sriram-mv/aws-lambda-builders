@@ -71,11 +71,14 @@ class GoModulesBuilder(object):
         out, err = p.communicate()
 
         if p.returncode != 0:
-            LOG.debug(err.decode("utf8").strip())
+            source_dir_err = err.decode("utf8").strip()
+            LOG.debug(source_dir_err)
             LOG.debug("Go files not found. Attempting to build for Go files in a different directory")
             process, p_out, p_err = self._attempt_to_build_from_handler(cmd, source_dir_path, env)
             if process.returncode != 0:
-                raise BuilderError(message=p_err.decode("utf8").strip())
+                handler_dir_err = p_err.decode("utf8").strip()
+                # Include both errors so users see the actual build failure
+                raise BuilderError(message=f"{source_dir_err}\n{handler_dir_err}")
             return p_out.decode("utf8").strip()
 
         return out.decode("utf8").strip()
